@@ -40,6 +40,7 @@ Nmap done: 1 IP address (1 host up) scanned in 7.11 seconds
 As we can see in this output, the server appears to be running SSH and HTTP.
 
 Upon navigating to the HTTP page in a browser, we just see a simple page displaying a hello world message:
+
 ![Nibbles Hello World Site](attachments/Pasted image 20220626154406.png)
 
 ## Discovering Nibbleblog
