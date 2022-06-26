@@ -46,43 +46,52 @@ Upon navigating to the HTTP page in a browser, we just see a simple page display
 ## Discovering Nibbleblog
 ---
 By inspecting the source, we can see that there is a special directory being served on the webserver:
-![[Pasted image 20220626154526.png]]
+
+![Comment in HTML with new directory](attachments/Pasted image 20220626154526.png)
 
 In this directory, we find an empty blog page. We can see in the bottom right-hand corner of this page that the site is powered by "Nibbleblog":
-![[Pasted image 20220626154809.png]]
+
+![Fingerprinting Nibbleblog](attachments/Pasted image 20220626154809.png)
 
 ## Idenitfying Potential Vulnerabilities in Nibbleblog
 ---
 By looking up Nibbleblog, we can find that Nibbleblog is an open source CMS application that is no longer maintained. We can find the source code on the project's github: https://github.com/dignajar/nibbleblog
 
 As the blog software is no longer maintained, we should check to see if the server is running a vulnerable version. I was not able to determine a version number for the version of Nibbleblog running on the target. However, we can run searchsploit to verify whether or not publicly known vulnerabilities exist for Nibbleblog. We find that there is an arbitrary file upload vulnerability in version 4.0.3:
-![[Pasted image 20220626155739.png]]
+
+![Searchsploit to look for vulnerabilities in Nibbleblog](attachments/Pasted image 20220626155739.png)
 
 The specific vulnerability identified is CVE-2015-6967, and the seachsploit payload found above corresponds to this exploit: https://www.exploit-db.com/exploits/38489
 
 We can tell by looking at the exploit available for metasploit that the file upload vulnerability is authenticated, so we will need a username and password:
-![[Pasted image 20220626160102.png]]
+
+![Checking to see if we need authentication for the RCE](attachments/Pasted image 20220626160102.png)
 
 ## Bruteforcing the Nibbleblog login
 ---
 Upon researching Nibbleblog, I was not able to determine if there are any default credentials available for Nibbleblog. Because of this lack of default credentials, I decided to attempt to bruteforce the nibbleblog login. By lookign through the github repository, we can see that there is an admin.php file, which contains a login page:
-![[Pasted image 20220626165446.png]]
+
+![admin.php page in Nibbleblog](attachments/Pasted image 20220626165446.png)
 
 As we can see in the above screenshot, we get an error message upon failing to login that reads "Incorrect username or password."
 
 In order to attempt to bruteforce the login page, we can use the following hydra command: `hydra -l admin -P /usr/share/wordlists/rockyou.txt 10.10.10.75 http-post-form "/nibbleblog/admin.php:username=^USER^&password=^PASS^:F=Incorrect username or password."`
 
 Hydra tells us that there were several valid passwords found for the admin user (where the existence of the admin user is just a guess):
-![[Pasted image 20220626170039.png]]
+
+![False Positives in Hydra](attachments/Pasted image 20220626170039.png)
 
 Unfortunately, none of these passwords turn out to be actual valid passwords, but rather hydra is finding false positives because there is some kind of IP lockout in place in the web application:
-![[Pasted image 20220626170142.png]]
+
+![Blacklisting for invalid logins in Nibbleblog](attachments/Pasted image 20220626170142.png)
 
 Looking into the Nibbleblog source code on github, we find that the blacklisting is implemented in Nibbleblog itself in the db_users.php file. Specifically, we find that the blacklisting is implemented by ignoring requests sent by the same IP that have failed in rapid succession. After a few minutes, the blacklist then resets and allows additional login attempts:
-![[Pasted image 20220626170541.png]]
+
+![Blacklisting in the Nibbleblog Source](attachments/Pasted image 20220626170541.png)
 
 If we look into the logic that determines the user's ip address, we can see that the application trusts the X-Forwarded-For header before it trusts the originating IP in determining the valid IP address. This means that we can spoof our IP address to get past the IP blacklisting and allow us to bruteforce the login panel at full speed:
-![[Pasted image 20220626170819.png]]
+
+![Source code showing X-Forwarded-For Bypass](attachments/Pasted image 20220626170819.png)
 
 In order to bruteforce the password for the admin user (still assuming that this user exists, but we could try a userlist next), we can use the following script:
 ```python
@@ -138,37 +147,48 @@ passfile.close()
 ```
 
 After running the bruteforce script on the admin user, we find the credentials admin:nibbles for the CMS:
-![[Pasted image 20220626185954.png]]
+
+![Bruteforce script detecting password](attachments/Pasted image 20220626185954.png)
 
 We can verify that we have the correct username and password by logging into the admin panel:
-![[Pasted image 20220626190400.png]]
+
+![Valid login to the admin panel](attachments/Pasted image 20220626190400.png)
 
 Since, the password for the CMS is "nibbles", it is likely that the box creator intended for us to guess that the name of the box (or the name of the blog within the box) was the password, rather than find a way to bruteforce it. This is likely an attempt to simulate using a company name as a password.
 
 ## Gaining Remote Code Execution using CVE-2015-6967
 ---
 Now that we have the admin password, we can continue to test the previous potential vulnerability that we identified using the nibbleblog_file_upload metasploit module. We can test the application using the following options (and `set verbose true` issued to get additional output):
-![[Pasted image 20220626190602.png]]
+
+![Metasploit options for the payload](attachments/Pasted image 20220626190602.png)
 
 This payload is successful and we now have a meterpreter session on the box running as the nibbler user:
-![[Pasted image 20220626191025.png]]
+
+![Successful shell gained through metasploit exploit](attachments/Pasted image 20220626191025.png)
 
 We can now read the user flag in /home/nibbler/user.txt:
-![[Pasted image 20220626191212.png]]
+
+![Reading the user flag](attachments/Pasted image 20220626191212.png)
 
 ## Privilege Escalation
 ---
 By using the `sudo -l` command, we can see that the nibbler user has the ability to execute a specific bash script as root:
-![[Pasted image 20220626191321.png]]
+
+![Checking sudo permissions](attachments/Pasted image 20220626191321.png)
 
 Since the file that can be run with sudo is located in nibbler's hoem directory, we have the privileges necessary to create it:
-![[Pasted image 20220626191427.png]]
+
+![Creating the bash script for privilege escalation](attachments/Pasted image 20220626191427.png)
 
 We can modify the bash file provided to change the permissions of the bash program on the machine to be setuid. This will allow us to spawn a root shell:
-![[Pasted image 20220626191631.png]]
+
+![Adding contents to the bash script for privilege escalation](attachments/Pasted image 20220626191631.png)
 
 After running the newly created bash script with sudo, we can use `bash -p` to spawn a shell as root:
-![[Pasted image 20220626191739.png]]
 
+![Running the exploit to get a root shell](attachments/Pasted image 20220626191739.png)
 
+We can then use our newfound access to read the root flag:
+
+![Reading the root flag](attachments/Pasted image 20220626195008.png)
 
