@@ -11,4 +11,4 @@ A list of all of the CTF write-ups I have created can be found here: [Write-Ups]
 
 ## Cerfications
 ---
-A list of all the InfoSec certifications that I have recieved (with proof where applicable) can be found here: [Certifications](Certifications.md)
+A list of all the InfoSec certifications that I have received (with proof where applicable) can be found here: [Certifications](Certifications.md)
