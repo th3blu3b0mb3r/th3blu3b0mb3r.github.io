@@ -4,6 +4,7 @@ Hello and welcome to th3blu3b0mb3r.rocks! The intention of this site is to show 
 
 <script src="https://www.hackthebox.eu/badge/111389"></script>
 
+
 ## CTF and Wargame Write-Ups
 ---
 A list of all of the CTF write-ups I have created can be found here: [Write-Ups](writeups.md)
