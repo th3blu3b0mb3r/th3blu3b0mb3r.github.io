@@ -59,7 +59,7 @@ In this directory, we find an empty blog page. We can see in the bottom right-ha
 ---
 By looking up Nibbleblog, we can find that Nibbleblog is an open source CMS application that is no longer maintained. We can find the source code on the project's github: https://github.com/dignajar/nibbleblog
 
-As the blog software is no longer maintained, we should check to see if the server is running a vulnerable version. I was not able to determine a version number for the version of Nibbleblog running on the target. However, we can run searchsploit to verify whether or not publicly known vulnerabilities exist for Nibbleblog. We find that there is an arbitrary file upload vulnerability in version 4.0.3:
+As the blog software is no longer maintained, we would normally check to see if the server is running a vulnerable version, but, unfortunately, I was not able to determine a version number for the version of Nibbleblog running on the target. However, we can run searchsploit to verify whether or not publicly known vulnerabilities exist for Nibbleblog. We find that there is an arbitrary file upload vulnerability in version 4.0.3:
 
 ![Searchsploit to look for vulnerabilities in Nibbleblog](attachments/Pasted image 20220626155739.png)
 
