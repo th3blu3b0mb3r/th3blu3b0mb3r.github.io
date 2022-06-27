@@ -9,3 +9,6 @@ Hello and welcome to th3blu3b0mb3r.rocks! The intention of this site is to show 
 ---
 A list of all of the CTF write-ups I have created can be found here: [Write-Ups](writeups.md)
 
+## Cerfications
+---
+A list of all the InfoSec certifications that I have recieved (with proof where applicable) can be found here: [Certifications](Certifications.md)
