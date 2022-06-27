@@ -63,7 +63,7 @@ As the blog software is no longer maintained, we would normally check to see if 
 
 ![Searchsploit to look for vulnerabilities in Nibbleblog](attachments/Pasted image 20220626155739.png)
 
-The specific vulnerability identified is CVE-2015-6967, and the searchsploit payload found above corresponds to this exploit: https://www.exploit-db.com/exploits/38489
+The specific vulnerability identified using searchsploit is CVE-2015-6967. The metasploit exploit found above corresponds to this exploit: https://www.exploit-db.com/exploits/38489
 
 We can tell by looking at the exploit available for metasploit that the file upload vulnerability is authenticated, so we will need a username and password:
 
