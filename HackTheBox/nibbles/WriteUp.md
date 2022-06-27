@@ -1,5 +1,7 @@
 # Nibbles - EASY Write-Up
 ---
+Nibbles is an easy box from Hack the Box. The solution involves creating mechanism to bruteforce a password despite the presence of a rate-limiting blacklist, exploiting a CVE in an outdated CMS application, and performing a simple privilege escalation with sudo. 
+
 ## Initial Scanning
 ---
 In order to begin working on the box, the first thing we must do is determine which ports are open on the target machine. For this task, I used the following nmap command: `nmap -sV -v 10.10.10.75`
