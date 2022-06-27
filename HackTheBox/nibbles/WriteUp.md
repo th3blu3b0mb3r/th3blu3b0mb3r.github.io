@@ -1,6 +1,6 @@
 # Nibbles - EASY Write-Up
 ---
-Nibbles is an easy box from Hack the Box. The solution involves creating mechanism to bruteforce a password despite the presence of a rate-limiting blacklist, exploiting a CVE in an outdated CMS application, and performing a simple privilege escalation with sudo. 
+Nibbles is an easy box from Hack the Box. The solution involves creating a mechanism to bruteforce a password despite the presence of a rate-limiting blacklist, exploiting a CVE in an outdated CMS application, and performing a simple privilege escalation with sudo. 
 
 ## Initial Scanning
 ---
@@ -55,7 +55,7 @@ In this directory, we find an empty blog page. We can see in the bottom right-ha
 
 ![Fingerprinting Nibbleblog](attachments/Pasted image 20220626154809.png)
 
-## Idenitfying Potential Vulnerabilities in Nibbleblog
+## Identifying Potential Vulnerabilities in Nibbleblog
 ---
 By looking up Nibbleblog, we can find that Nibbleblog is an open source CMS application that is no longer maintained. We can find the source code on the project's github: https://github.com/dignajar/nibbleblog
 
@@ -63,7 +63,7 @@ As the blog software is no longer maintained, we should check to see if the serv
 
 ![Searchsploit to look for vulnerabilities in Nibbleblog](attachments/Pasted image 20220626155739.png)
 
-The specific vulnerability identified is CVE-2015-6967, and the seachsploit payload found above corresponds to this exploit: https://www.exploit-db.com/exploits/38489
+The specific vulnerability identified is CVE-2015-6967, and the searchsploit payload found above corresponds to this exploit: https://www.exploit-db.com/exploits/38489
 
 We can tell by looking at the exploit available for metasploit that the file upload vulnerability is authenticated, so we will need a username and password:
 
@@ -71,7 +71,7 @@ We can tell by looking at the exploit available for metasploit that the file upl
 
 ## Bruteforcing the Nibbleblog login
 ---
-Upon researching Nibbleblog, I was not able to determine if there are any default credentials available for Nibbleblog. Because of this lack of default credentials, I decided to attempt to bruteforce the nibbleblog login. By lookign through the github repository, we can see that there is an admin.php file, which contains a login page:
+Upon researching Nibbleblog, I was not able to determine if there are any default credentials available for Nibbleblog. Because of this lack of default credentials, I decided to attempt to bruteforce the nibbleblog login. By looking through the github repository, we can see that there is an admin.php file, which contains a login page:
 
 ![admin.php page in Nibbleblog](attachments/Pasted image 20220626165446.png)
 
