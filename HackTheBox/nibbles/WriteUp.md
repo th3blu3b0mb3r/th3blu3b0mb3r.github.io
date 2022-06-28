@@ -1,4 +1,4 @@
-# Nibbles - EASY Write-Up
+# Nibbles - Easy Linux Write-Up
 ---
 Nibbles is an easy box from Hack the Box. The solution involves creating a mechanism to bruteforce a password despite the presence of a rate-limiting blacklist, exploiting a CVE in an outdated CMS application, and performing a simple privilege escalation with sudo. 
 
