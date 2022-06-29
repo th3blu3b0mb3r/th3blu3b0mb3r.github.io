@@ -35,6 +35,7 @@ If we attempt to enter a search term on the askjeeves page, we find there is som
 Unfortunately for us, this error appears to just be an image that is sent back on every request (as evidenced by the png shown in the source):
 
 ![Static image of an SQL error](attachments/Pasted image 20220628172800.png)
+
 Since it does not appear that we are actually triggering an SQL error, we can move on to continue examining the remaining attack surface.
 
 ## Preforming Enumeration to Find an Unauthenticated Jenkins Instance
@@ -42,6 +43,7 @@ Since it does not appear that we are actually triggering an SQL error, we can mo
 Upon navigating to the 50000 port in a web browser, we see that there appears to be a jetty web server:
 
 ![Jetty web server on port 50000](attachments/Pasted image 20220628173018.png)
+
 In order to determine if any pages of interest are served by the Jetty web server, we can perform a directory brute-force attack with the following ffuf command: `ffuf -u http://10.10.10.63:50000/FUZZ -w /usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-lowercase-2.3-small.txt -ic`
 
 The output from this command shows us that there is an /askjeeves directory served on the web server:
@@ -81,6 +83,7 @@ Jenkins is a continuous integration tool that provides the ability to write cust
 The first step for executing a custom script in Jenkins is to navigate to the new item dialog where we can create new object (including a build pipeline):
 
 ![Creating a New Item in Jenkins](attachments/Pasted image 20220628182229.png)
+
 We then must choose to create a new pipeline and give it a name (in this case, we just use ReverseShell, but a more difficult to detect name would typically be recommended):
 
 ![Creating a Build Pipeline in Jenkins](attachments/Pasted image 20220628182503.png)
@@ -105,9 +108,11 @@ The last step to prepare for payload execution is to start a listener that will 
 In order to trigger our payload, we must simply run the build pipeline in Jenkins. We can run the build pipeline by clicking the "Build Now" option on ReverseShell build pipeline page:
 
 ![Triggering the reverse shell payload with "Build Now"](attachments/Pasted image 20220628200832.png)
+
 Once we have pressed the "Build Now" button in Jenkins, we will see that we have received a reverse shell prompt on our netcat listener. This shell is running as the kohsuke user:
 
 ![Catching the reverse shell after payload execution](attachments/Pasted image 20220628201020.png)
+
 We can now navigate to the kohsuke user's Desktop directory, where we are able to print the user flag:
 
 ![Printing the user flag](attachments/Pasted image 20220628201356.png)
@@ -116,6 +121,7 @@ We can now navigate to the kohsuke user's Desktop directory, where we are able t
 By performing some manual enumeration with kohsuke's home directory, we find a kdbx file in C:\\Users\\kohsuke\\Documents:
 
 ![Locating the kdbx file in the Documents directory](attachments/Pasted image 20220628201549.png)
+
 Files with the kdbx extension are used to store the database of passwords for the keepass password manager. If we are able to crack the password for the keepass file, we may find some sensitive information that could help us to escalate privileges on the target machine.
 
 Before we can attempt to crack the password for the kdbx file, we must transfer it to our attacking machine. We can transfer this file to our machine using smb with impacket's smb server tool. To start an smb server with the share name "kali" on our attacking machine, we can use the following command: `impacket-smbserver kali . -smb2support`
@@ -136,9 +142,11 @@ John successfully cracks the hash to show us that the password for the keepass w
 We can now use the `kpcli -kdb ./CEH.kdbx` command in order to read what is stored in the keepass file. We will be prompted for a password, where we can enter the password (`moonshine1`) that we found above. Upon reading the file, we can list its contents to see that there is a /CEH directory. If we list this directory, we can see that there is a list of entries that are stored within the keepass database:
 
 ![Listing the keepass entries](attachments/Pasted image 20220628203547.png)
+
 We can then begin to list the contents of each entry one-by-one to see if they contain any useful information. We use the `show -f <index>` command to list the entry contents. In the entry at index 0 (named "Backup Stuff"), we can see what appears to be an NT hash:
 
 ![Discovering an NT hash in the keepass database](attachments/Pasted image 20220628203904.png)
+
 Since we now have a potential hash on the machine, we can use smbmap to test if we can authenticate to the server using a pass-the-hash attack. We can perform this attack using the `smbmap -u Administrator -p 'aad3b435b51404eeaad3b435b51404ee:e0fb1fb85756c24235ff238cbe81fe00' -H 10.10.10.63` command, which will tell us that we have write access over the ADMIN$ share:
 
 ![Checking to see if the NT hash is valid for the Administrator user](attachments/Pasted image 20220628204223.png)
@@ -154,11 +162,13 @@ When the command executes, we can see that we have successfully gained super use
 Now that we are able to execute commands with administrative privileges, we can attempt to read the root flag from the Administrator's Desktop directory. Unfortunately, when we list the Administrator's desktop, we do not see the root flag, but rather we see a file called hm.txt. The contents of the hm.txt file inform us that the flag is elsewhere on the system:
 
 ![Reading hm.txt to find that the root flag is elsewhere](attachments/Pasted image 20220628210019.png)
+
 We can check the Administrator's Desktop directory to see if there are any files containing alternate data streams in which the root flag may reside. We can perform this check using the following command: `cmd.exe /c "dir /r /a"`
 
 After listing the dataset again, we can see that the root.txt file is an alternate data stream within the hm.txt file:
 
 ![Examining the Desktop for alternate data streams](attachments/Pasted image 20220628210306.png)
+
 Note that we must use the "cmd.exe /c" wrapper around the above command because we are operating from within a powershell session, and powershell has different options for the dir command than the standard command prompt. The same technique is used below to read the alternate data stream.
 
 In order to print out the real flag, we can use the following command: `cmd.exe /c "more < hm.txt:root.txt"`
